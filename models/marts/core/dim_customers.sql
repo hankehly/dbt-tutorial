@@ -1,4 +1,3 @@
-{{ config(materialized="table") }}
 with
     customers as (select * from {{ ref("stg_customers") }}),
     orders as (select * from {{ ref("stg_orders") }}),
@@ -9,7 +8,7 @@ with
             max(order_date) as most_recent_order_date,
             count(order_id) as number_of_orders
         from orders
-        group by 1
+        group by customer_id
     ),
     final as (
         select
