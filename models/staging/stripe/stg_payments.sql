@@ -6,4 +6,4 @@ select
     amount / 100 as amount,
     status,
     created
-from `dbt-tutorial.stripe.payment`
+from {{ source("stripe", "payment") }}
