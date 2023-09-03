@@ -1,0 +1,86 @@
+version: 2
+models:
+  - name: stg_customers
+    description: one unique customer per row
+    columns: 
+      - name: customer_id
+        description: primary key for stg_customers
+        tests:
+          - unique
+          - not_null
+  - name: stg_orders
+    description: one unique order per row (an order belongs to a customer)
+    columns:
+      - name: order_id
+        description: '{{ doc("stg_orders_order_id") }}'
+        tests:
+          - unique
+          - not_null
+      - name: status
+        # Referencing "order_status" block in jaffle_shop.md
+        # dbt docs generate will include this block as markdown in the docs
+        description: '{{ doc("stg_orders_status") }}'
+        tests:
+          - accepted_values:
+              values:
+                - completed
+                - shipped
+                - returned
+                - return_pending
+                - placed
+      - name: customer_id
+        description: foreign key to stg_customers
+        tests:
+          # Every customer_id in the stg_orders model should correspond
+          # to a customer_id in the stg_customers model
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+sources:
+  - name: jaffle_shop
+    database: dbt-tutorial
+    schema: jaffle_shop
+    description: a clone of a postgresql application database
+    tables:
+      - name: customers
+        description: the raw customers data
+        columns: 
+          - name: id
+            description: primary key of customers table
+            tests:
+              - unique
+              - not_null
+      - name: orders
+        description: the raw orders data
+        # dbt source freshness will look at the max(orders._etl_loaded_at)
+        # and issue a warning if over 12 hours old or an error if over 24 hours old
+        freshness:
+          warn_after:
+            count: 12
+            period: hour
+          error_after:
+            count: 24
+            period: hour
+        loaded_at_field: _etl_loaded_at
+        columns:
+          - name: id
+            description: primary key of orders table
+            # You can configure tests on the sources the same way
+            # you configure them for models
+            tests:
+              - unique
+              - not_null
+          - name: status
+            tests:
+              - accepted_values:
+                  values:
+                    - completed
+                    - shipped
+                    - returned
+                    - return_pending
+                    - placed
+          - name: customer_id
+            tests:
+              - relationships:
+                  to: ref('customers')
+                  field: id
