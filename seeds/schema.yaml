@@ -1,0 +1,14 @@
+version: 2
+
+# You can add descriptions and tests for your seeds in the
+# same way that you do for sources/models.
+# To run the tests for the employee seed, execute:
+#   dbt test --model employees
+seeds:
+  - name: employees
+    description: this is a description for the employees seed
+    columns:
+      - name: employee_id
+        tests:
+          - unique
+          - not_null
