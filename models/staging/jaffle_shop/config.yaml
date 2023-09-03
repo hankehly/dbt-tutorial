@@ -23,6 +23,8 @@ models:
                 - placed
       - name: customer_id
         tests:
+          # Every customer_id in the stg_orders model should correspond
+          # to a customer_id in the stg_customers model
           - relationships:
               to: ref('stg_customers')
               field: customer_id
@@ -32,6 +34,11 @@ sources:
     schema: jaffle_shop
     tables:
       - name: customers
+        columns: 
+          - name: id
+            tests:
+              - unique
+              - not_null
       - name: orders
         # dbt source freshness will look at the max(orders._etl_loaded_at)
         # and issue a warning if over 12 hours old or an error if over 24 hours old
@@ -43,3 +50,24 @@ sources:
             count: 24
             period: hour
         loaded_at_field: _etl_loaded_at
+        columns:
+          - name: id
+            # You can configure tests on the sources the same way
+            # you configure them for models
+            tests:
+              - unique
+              - not_null
+          - name: status
+            tests:
+              - accepted_values:
+                  values:
+                    - completed
+                    - shipped
+                    - returned
+                    - return_pending
+                    - placed
+          - name: customer_id
+            tests:
+              - relationships:
+                  to: ref('customers')
+                  field: id
