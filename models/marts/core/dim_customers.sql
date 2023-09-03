@@ -18,10 +18,13 @@ with
             customers.last_name,
             customer_orders.first_order_date,
             customer_orders.most_recent_order_date,
+            employees.employee_id is not null as is_employee,
             coalesce(customer_orders.lifetime_value, 0) as lifetime_value,
             coalesce(customer_orders.number_of_orders, 0) as number_of_orders
         from customers
         left join customer_orders using (customer_id)
+        -- this ref references the seed file employees.csv
+        left join {{ ref('employees') }} employees using (customer_id)
     )
 select *
 from final
