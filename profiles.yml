@@ -1,0 +1,11 @@
+# typically a profile per warehouse
+my-bigquery-wh:
+  # typically a target per tier (dev, staging, prod)
+  target: prod
+  outputs:
+    prod:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: "{{ env_var('GCP_DATASET_NAME') }}"
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
