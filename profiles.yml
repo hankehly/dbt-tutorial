@@ -1,11 +1,30 @@
 # typically a profile per warehouse
 my-bigquery-wh:
-  # typically a target per tier (dev, staging, prod)
-  target: prod
+  # this is the name of the default target to use
+  target: dev
+
   outputs:
+    # this is the target name
+    # you typically a target per tier (dev, staging, prod)
+
+    # Example using service account keyfile
+    # prod:
+    #   type: bigquery
+    #   method: service-account
+    #   project: "{{ env_var('MY_BIGQUERY_WH_PROD_PROJECT') }}"
+    #   dataset: "{{ env_var('MY_BIGQUERY_WH_PROD_DATASET') }}"
+    #   keyfile: "{{ env_var('MY_BIGQUERY_WH_PROD_KEYFILE') }}"
+
     prod:
       type: bigquery
-      method: service-account
-      project: "{{ env_var('GCP_PROJECT_ID') }}"
-      dataset: "{{ env_var('GCP_DATASET_NAME') }}"
-      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
+      method: oauth
+      project: "{{ env_var('MY_BIGQUERY_WH_DEV_PROJECT') }}"
+      dataset: "{{ env_var('MY_BIGQUERY_WH_DEV_DATASET') }}"
+
+    # another target
+    # Example using gcloud command
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('MY_BIGQUERY_WH_DEV_PROJECT') }}"
+      dataset: "{{ env_var('MY_BIGQUERY_WH_DEV_DATASET') }}"
