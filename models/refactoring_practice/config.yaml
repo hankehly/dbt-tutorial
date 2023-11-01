@@ -1,3 +1,33 @@
+models:
+  - name: base_jaffle_shop_2_customers
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+  - name: base_jaffle_shop_2_orders
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        tests:
+          - relationships:
+              to: ref('base_jaffle_shop_2_customers')
+              field: id
+  - name: base_stripe_2_payments
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+      - name: orderid
+        tests:
+          - relationships:
+              to: ref('base_jaffle_shop_2_orders')
+              field: id
+
 sources:
   - name: jaffle_shop_2
     database: "{{ env_var('MY_BIGQUERY_WH_DEV_PROJECT') }}"
@@ -18,6 +48,9 @@ sources:
       - name: customers
         columns:
           - name: id
+            tests:
+              - unique
+              - not_null
   - name: stripe_2
     database: "{{ env_var('MY_BIGQUERY_WH_DEV_PROJECT') }}"
     schema: "{{ env_var('MY_BIGQUERY_WH_DEV_DATASET') }}"
