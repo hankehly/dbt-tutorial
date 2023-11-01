@@ -1,0 +1,36 @@
+sources:
+  - name: jaffle_shop_2
+    database: "{{ env_var('MY_BIGQUERY_WH_DEV_PROJECT') }}"
+    schema: "{{ env_var('MY_BIGQUERY_WH_DEV_DATASET') }}"
+    tables:
+      - name: orders
+        columns:
+          - name: id
+            description: primary key of orders table
+            tests:
+              - unique
+              - not_null
+          - name: user_id
+            tests:
+              - relationships:
+                  to: ref('customers')
+                  field: id
+      - name: customers
+        columns:
+          - name: id
+  - name: stripe_2
+    database: "{{ env_var('MY_BIGQUERY_WH_DEV_PROJECT') }}"
+    schema: "{{ env_var('MY_BIGQUERY_WH_DEV_DATASET') }}"
+    tables:
+      - name: payments
+        columns:
+          - name: id
+            description: primary key of orders table
+            tests:
+              - unique
+              - not_null
+          - name: orderid
+            tests:
+              - relationships:
+                  to: ref('orders')
+                  field: id
