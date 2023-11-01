@@ -3,10 +3,10 @@ with source as (
 ),
 renamed as (
     select
-        {{ adapter.quote("ID") }},
-        {{ adapter.quote("USER_ID") }},
-        {{ adapter.quote("ORDER_DATE") }},
-        {{ adapter.quote("STATUS") }}
+        {{ adapter.quote("ID") }} AS id,
+        {{ adapter.quote("USER_ID") }} AS customer_id,
+        {{ adapter.quote("ORDER_DATE") }} AS date,
+        {{ adapter.quote("STATUS") }} AS status
 
     from source
 )

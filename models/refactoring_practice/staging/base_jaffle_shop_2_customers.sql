@@ -3,9 +3,9 @@ with source as (
 ),
 renamed as (
     select
-        {{ adapter.quote("ID") }},
-        {{ adapter.quote("FIRST_NAME") }},
-        {{ adapter.quote("LAST_NAME") }},
+        {{ adapter.quote("ID") }} AS id,
+        {{ adapter.quote("FIRST_NAME") }} AS first_name,
+        {{ adapter.quote("LAST_NAME") }} AS last_name,
 
     from source
 )

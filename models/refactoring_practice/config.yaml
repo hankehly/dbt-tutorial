@@ -11,7 +11,7 @@ models:
         tests:
           - unique
           - not_null
-      - name: user_id
+      - name: customer_id
         tests:
           - relationships:
               to: ref('base_jaffle_shop_2_customers')
@@ -22,11 +22,17 @@ models:
         tests:
           - unique
           - not_null
-      - name: orderid
+      - name: order_id
         tests:
           - relationships:
               to: ref('base_jaffle_shop_2_orders')
               field: id
+      - name: status
+        tests:
+          - accepted_values:
+              values:
+                - success
+                - fail
 
 sources:
   - name: jaffle_shop_2
@@ -67,3 +73,9 @@ sources:
               - relationships:
                   to: ref('orders')
                   field: id
+          - name: status
+            tests:
+              - accepted_values:
+                  values:
+                    - success
+                    - fail

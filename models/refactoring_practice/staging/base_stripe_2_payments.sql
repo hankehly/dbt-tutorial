@@ -3,12 +3,12 @@ with source as (
 ),
 renamed as (
     select
-        {{ adapter.quote("ID") }},
-        {{ adapter.quote("ORDERID") }},
-        {{ adapter.quote("PAYMENTMETHOD") }},
-        {{ adapter.quote("STATUS") }},
-        {{ adapter.quote("AMOUNT") }},
-        {{ adapter.quote("CREATED") }}
+        {{ adapter.quote("ID") }} AS id,
+        {{ adapter.quote("ORDERID") }} AS order_id,
+        {{ adapter.quote("PAYMENTMETHOD") }} AS payment_method,
+        {{ adapter.quote("STATUS") }} AS status,
+        {{ adapter.quote("AMOUNT") }} AS amount,
+        {{ adapter.quote("CREATED") }} AS created_at
 
     from source
 )

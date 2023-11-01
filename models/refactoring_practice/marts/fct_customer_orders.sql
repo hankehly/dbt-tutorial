@@ -1,84 +1,110 @@
 WITH
+  --
+  --
+  --
+  finalized_payments AS (
+  SELECT
+    order_id,
+    MAX(created_at) AS payment_finalized_date,
+    {{ cents_to_dollars('SUM(amount)') }} AS total_amount_paid
+  FROM
+    {{ ref("base_stripe_2_payments") }}
+  WHERE
+    status = "success"
+  GROUP BY
+    order_id
+  ),
+  --
+  --
+  --
   paid_orders AS (
   SELECT
-    Orders.ID AS order_id,
-    Orders.USER_ID AS customer_id,
-    Orders.ORDER_DATE AS order_placed_at,
-    Orders.STATUS AS order_status,
-    p.total_amount_paid,
-    p.payment_finalized_date,
-    C.FIRST_NAME AS customer_first_name,
-    C.LAST_NAME AS customer_last_name
+    orders.id AS order_id,
+    orders.customer_id,
+    orders.date AS order_placed_at,
+    orders.status AS order_status,
+    payments.total_amount_paid,
+    payments.payment_finalized_date,
+    customers.first_name AS customer_first_name,
+    customers.last_name AS customer_last_name
   FROM
-    {{ ref("base_jaffle_shop_2_orders") }} AS Orders
-  LEFT JOIN (
-    SELECT
-      ORDERID AS order_id,
-      MAX(CREATED) AS payment_finalized_date,
-      SUM(AMOUNT) / 100.0 AS total_amount_paid
-    FROM
-      {{ ref("base_stripe_2_payments") }}
-    WHERE
-      STATUS <> 'fail'
-    GROUP BY
-      1
-    ) p
-  ON
-    orders.ID = p.order_id
+    {{ ref("base_jaffle_shop_2_orders") }} AS orders
   LEFT JOIN
-    {{ ref('base_jaffle_shop_2_customers') }} C
+    finalized_payments payments
   ON
-    orders.USER_ID = C.ID ),
+    orders.id = payments.order_id
+  LEFT JOIN
+    {{ ref('base_jaffle_shop_2_customers') }} customers
+  ON
+    customers.id = orders.customer_id
+  ),
+  --
+  --
+  --
   customer_orders AS (
   SELECT
-    C.ID AS customer_id,
-    MIN(ORDER_DATE) AS first_order_date,
-    MAX(ORDER_DATE) AS most_recent_order_date,
-    COUNT(ORDERS.ID) AS number_of_orders
+    customers.id AS customer_id,
+    MIN(date) AS first_order_date,
+    MAX(date) AS most_recent_order_date,
+    COUNT(orders.ID) AS number_of_orders
   FROM
-    {{ ref('base_jaffle_shop_2_customers') }} C
+    {{ ref('base_jaffle_shop_2_customers') }} customers
   LEFT JOIN
-    {{ ref("base_jaffle_shop_2_orders") }} AS Orders
+    {{ ref("base_jaffle_shop_2_orders") }} AS orders
   ON
-    orders.USER_ID = C.ID
+    orders.customer_id = customers.id
   GROUP BY
-    1
-  )
-SELECT
-  p.*,
-  ROW_NUMBER() OVER (ORDER BY p.order_id) AS transaction_seq,
-  ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY p.order_id) AS customer_sales_seq,
-  CASE
-    WHEN c.first_order_date = p.order_placed_at THEN 'new'
-  ELSE
-  'return'
-END
-  AS nvsr,
-  x.clv_bad AS customer_lifetime_value,
-  c.first_order_date AS fdos
-FROM
-  paid_orders p
-LEFT JOIN
-  customer_orders AS c
-USING
-  (customer_id)
-LEFT OUTER JOIN (
+    customer_id
+  ),
+  --
+  --
+  --
+  x AS (
   SELECT
-    p.order_id,
-    SUM(t2.total_amount_paid) AS clv_bad
+    t1.order_id,
+    SUM(t2.total_amount_paid) AS customer_lifetime_value
   FROM
-    paid_orders p
+    paid_orders t1
   LEFT JOIN
     paid_orders t2
   ON
-    p.customer_id = t2.customer_id
-    AND p.order_id >= t2.order_id
+    t1.customer_id = t2.customer_id
+    AND t1.order_id >= t2.order_id
   GROUP BY
-    1
+    t1.order_id
   ORDER BY
-    p.order_id
-  ) x
-ON
-  x.order_id = p.order_id
-ORDER BY
-  order_id
+    t1.order_id
+  ),
+  --
+  --
+  --
+  final AS (
+  SELECT
+    p.order_id,
+    p.customer_id,
+    p.order_placed_at,
+    p.order_status,
+    p.total_amount_paid,
+    p.payment_finalized_date,
+    p.customer_first_name,
+    p.customer_last_name,
+    ROW_NUMBER() OVER (ORDER BY p.order_id) AS transaction_seq,
+    ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY p.order_id) AS customer_sales_seq,
+    CASE WHEN c.first_order_date = p.order_placed_at THEN 'new' ELSE 'return' END AS nvsr,
+    x.customer_lifetime_value,
+    c.first_order_date AS fdos
+  FROM
+    paid_orders p
+  LEFT JOIN
+    customer_orders AS c
+  USING
+    (customer_id)
+  LEFT JOIN
+    x
+  USING
+    (order_id)
+  ORDER BY
+    order_id
+  )
+
+SELECT * FROM final
