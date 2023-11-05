@@ -1,11 +1,11 @@
 models:
-  - name: base_jaffle_shop_2_customers
+  - name: stg_jaffle_shop_2__customers
     columns:
       - name: id
         tests:
           - unique
           - not_null
-  - name: base_jaffle_shop_2_orders
+  - name: stg_jaffle_shop_2__orders
     columns:
       - name: id
         tests:
@@ -14,9 +14,9 @@ models:
       - name: customer_id
         tests:
           - relationships:
-              to: ref('base_jaffle_shop_2_customers')
+              to: ref('stg_jaffle_shop_2__customers')
               field: id
-  - name: base_stripe_2_payments
+  - name: stg_stripe_2__payments
     columns:
       - name: id
         tests:
@@ -25,7 +25,7 @@ models:
       - name: order_id
         tests:
           - relationships:
-              to: ref('base_jaffle_shop_2_orders')
+              to: ref('stg_jaffle_shop_2__orders')
               field: id
       - name: status
         tests:

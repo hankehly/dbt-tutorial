@@ -8,7 +8,7 @@ WITH
     MAX(created_at) AS payment_finalized_date,
     {{ cents_to_dollars('SUM(amount)') }} AS total_amount_paid
   FROM
-    {{ ref("base_stripe_2_payments") }}
+    {{ ref("stg_stripe_2__payments") }}
   WHERE
     status = "success"
   GROUP BY
@@ -28,13 +28,13 @@ WITH
     customers.first_name AS customer_first_name,
     customers.last_name AS customer_last_name
   FROM
-    {{ ref("base_jaffle_shop_2_orders") }} AS orders
+    {{ ref("stg_jaffle_shop_2__orders") }} AS orders
   LEFT JOIN
     finalized_payments payments
   ON
     orders.id = payments.order_id
   LEFT JOIN
-    {{ ref('base_jaffle_shop_2_customers') }} customers
+    {{ ref('stg_jaffle_shop_2__customers') }} customers
   ON
     customers.id = orders.customer_id
   ),
@@ -48,9 +48,9 @@ WITH
     MAX(date) AS most_recent_order_date,
     COUNT(orders.ID) AS number_of_orders
   FROM
-    {{ ref('base_jaffle_shop_2_customers') }} customers
+    {{ ref('stg_jaffle_shop_2__customers') }} customers
   LEFT JOIN
-    {{ ref("base_jaffle_shop_2_orders") }} AS orders
+    {{ ref("stg_jaffle_shop_2__orders") }} AS orders
   ON
     orders.customer_id = customers.id
   GROUP BY
